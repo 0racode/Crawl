@@ -1,0 +1,18 @@
+# Render Blueprint: New > Blueprint > pick this repo. Render builds backend/Dockerfile.
+services:
+  - type: web
+    name: sitecrawler-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free              # sleeps when idle, 512 MB RAM, no disk. Use "starter" + a disk for real use.
+    healthCheckPath: /health
+    envVars:
+      - key: API_KEY
+        generateValue: true  # copy this value into the app's Settings screen
+      - key: MAX_CONCURRENT_JOBS
+        value: "1"
+      - key: MAX_PAGES_HARD
+        value: "500"
+      - key: DB_PATH
+        value: /tmp/crawler.db   # ephemeral on the free plan; results vanish on restart, so export first
