@@ -1,0 +1,40 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate Expo project from app/ sources
+        run: |
+          chmod +x app/setup.sh
+          ./app/setup.sh
+
+      - name: Prebuild native Android project
+        working-directory: sitecrawler-app
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build release APK
+        working-directory: sitecrawler-app/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sitecrawler-apk
+          path: sitecrawler-app/android/app/build/outputs/apk/release/*.apk
